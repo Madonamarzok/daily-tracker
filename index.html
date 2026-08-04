@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dandona & Dodo Tracker</title>
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8fafc;
+            position: relative;
+        }
+
+        /* كارت المقارنة في منتصف أعلى الصفحة */
+        .comparison-banner {
+            background: #ffffff;
+            margin: 15px auto;
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #334155;
+            max-width: 90%;
+            border: 2px solid #e2e8f0;
+            z-index: 10;
+        }
+
+        /* تقسيم الشاشة لنصين */
+        .split-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .split-container {
+                flex-direction: column;
+            }
+        }
+
+        .side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+
+        /* جانب دندونا - بينك هادي */
+        .pink-side {
+            background-color: #fff0f3;
+        }
+
+        /* جانب أندرو - بيبي بلو هادي */
+        .blue-side {
+            background-color: #f0f8ff;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #475569;
+            text-align: center;
+        }
+
+        .streak-badge {
+            background: #ffffff;
+            color: #334155;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        /* حاوية الزرار وزرار التراجع */
+        .btn-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .main-btn {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            cursor: pointer;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .main-btn:active {
+            transform: scale(0.93);
+        }
+
+        /* زرار دوست بالغلط */
+        .undo-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .undo-btn:hover {
+            background: #ffffff;
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+
+        /* قسم الـ Reset والآيات أسفل الصفحة */
+        .reset-section {
+            background: #ffffff;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            max-width: 90%;
+            width: 450px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .reset-title {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .verses {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .reset-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 8px 18px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reset-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fca5a5;
+        }
+
+        .high-score {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #059669;
+            font-weight: 600;
+        }
+
+        /* زرار الـ Test المخفي/الصغير تحت خالص على اليمين */
+        .test-btn {
+            position: fixed;
+            bottom: 6px;
+            right: 8px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .test-btn:hover {
+            opacity: 1;
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الجزء الخاص بالمقارنة والتحدي في نص الصفحة -->
+    <div class="comparison-banner" id="comparison-text">
+        جاري تحميل البيانات... ⏳
+    </div>
+
+    <!-- تقسيم الشاشة لنصين -->
+    <div class="split-container">
+        
+        <!-- ناحية دندونا -->
+        <div class="side pink-side">
+            <h2>Dandona Day Streak</h2>
+            <div class="streak-badge" id="dandona-count">0 يوم</div>
+            <div class="btn-wrapper">
+                <button class="main-btn" onclick="updateStreak('dandona', 1)">
+                    📖🙏
+                </button>
+                <button class="undo-btn" onclick="updateStreak('dandona', -1)">
+                    ↩️ دوست بالغلط
+                </button>
+            </div>
+        </div>
+
+        <!-- ناحية أندرو (دودو) -->
+        <div class="side blue-side">
+            <h2>Dodo Day Streak</h2>
+            <div class="streak-badge" id="dodo-count">0 يوم</div>
+            <div class="btn-wrapper">
+                <button class="main-btn" onclick="updateStreak('dodo', 1)">
+                    📖🙏
+                </button>
+                <button class="undo-btn" onclick="updateStreak('dodo', -1)">
+                    ↩️ دوست بالغلط
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- قسم الـ Reset والآيات -->
+    <div class="reset-section">
+        <div class="reset-title">باظت مننا؟ هنعمل Reset عادي ❤️</div>
+        <div class="verses">
+            "إِذَا سَقَطْتُ أَقُومُ. فَالرَّبُّ نُورٌ لِي"<br>
+            "أَقُومُ وَأَذْهَبُ إِلَى أَبِي وَأَقُولُ لَهُ: يَا أَبِي"
+        </div>
+        <button class="reset-btn" onclick="resetStreaks()">🔄 Reset (بداية جديدة)</button>
+        <div class="high-score" id="high-score-text">
+            🏆 أطول Day Streak وصلناله: 0 يوم
+        </div>
+    </div>
+
+    <!-- زرار Test صغير جداً تحت خالص يمين -->
+    <button class="test-btn" onclick="hardResetForTesting()">test</button>
+
+    <script>
+    // إعدادات الـ Firebase الخاصة بيكي
+    const firebaseConfig = {
+        apiKey: "AIzaSyBBpHKQ6zLFXG6b9FBNBULBXUKQUFT62tU",
+        authDomain: "dandona-dodo-tracker.firebaseapp.com",
+        projectId: "dandona-dodo-tracker",
+        storageBucket: "dandona-dodo-tracker.firebasestorage.app",
+        messagingSenderId: "1051237054491",
+        appId: "1:1051237054491:web:b2e65ec8349939b5b1a0be",
+        measurementId: "G-FF1G7LSGY5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let dandonaDays = 0;
+    let dodoDays = 0;
+    let maxStreak = 0;
+
+    // التحديث اللحظي المباشر بين التليفونين
+    db.collection("trackers").doc("mainData").onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            dandonaDays = data.dandona || 0;
+            dodoDays = data.dodo || 0;
+            maxStreak = data.maxStreak || 0;
+            renderUI();
+        } else {
+            // عمل البيانات المبدئية لو مش موجودة
+            db.collection("trackers").doc("mainData").set({
+                dandona: 0,
+                dodo: 0,
+                maxStreak: 0
+            });
+        }
+    });
+
+    function renderUI() {
+        document.getElementById('dandona-count').innerText = dandonaDays + ' يوم';
+        document.getElementById('dodo-count').innerText = dodoDays + ' يوم';
+        document.getElementById('high-score-text').innerText = `🏆 أطول Day Streak وصلناله: ${maxStreak} يوم`;
+        updateComparisonText();
+    }
+
+    function updateStreak(person, change) {
+        const docRef = db.collection("trackers").doc("mainData");
+        db.runTransaction((transaction) => {
+            return transaction.get(docRef).then((sfDoc) => {
+                let currentDandona = sfDoc.exists ? (sfDoc.data().dandona || 0) : 0;
+                let currentDodo = sfDoc.exists ? (sfDoc.data().dodo || 0) : 0;
+                let currentMax = sfDoc.exists ? (sfDoc.data().maxStreak || 0) : 0;
+
+                if (person === 'dandona') {
+                    currentDandona = Math.max(0, currentDandona + change);
+                } else if (person === 'dodo') {
+                    currentDodo = Math.max(0, currentDodo + change);
+                }
+
+                let newMax = Math.max(currentMax, currentDandona, currentDodo);
+
+                transaction.set(docRef, {
+                    dandona: currentDandona,
+                    dodo: currentDodo,
+                    maxStreak: newMax
+                }, { merge: true });
+            });
+        });
+    }
+
+    function resetStreaks() {
+        if (confirm("تأكيد الـ Reset والبدء من جديد؟")) {
+            const docRef = db.collection("trackers").doc("mainData");
+            db.runTransaction((transaction) => {
+                return transaction.get(docRef).then((sfDoc) => {
+                    let currentDandona = sfDoc.exists ? (sfDoc.data().dandona || 0) : 0;
+                    let currentDodo = sfDoc.exists ? (sfDoc.data().dodo || 0) : 0;
+                    let currentMax = sfDoc.exists ? (sfDoc.data().maxStreak || 0) : 0;
+
+                    let newMax = Math.max(currentMax, currentDandona, currentDodo);
+
+                    transaction.set(docRef, {
+                        dandona: 0,
+                        dodo: 0,
+                        maxStreak: newMax
+                    }, { merge: true });
+                });
+            });
+        }
+    }
+
+    function hardResetForTesting() {
+        if (confirm("تصفير شامل للاختبار؟ (سيتم حذف أطول streak والعدادات)")) {
+            db.collection("trackers").doc("mainData").set({
+                dandona: 0,
+                dodo: 0,
+                maxStreak: 0
+            });
+        }
+    }
+
+    function updateComparisonText() {
+        const banner = document.getElementById('comparison-text');
+
+        if (dandonaDays === dodoDays) {
+            banner.innerText = `🔥 Dandona w Dodo are Equal! ${dandonaDays} Alright 👑`;
+        } else if (dandonaDays > dodoDays) {
+            const diff = dandonaDays - dodoDays;
+            banner.innerText = `✨ Dandona ${dandonaDays} But Dodo ${dodoDays} So Dodo needs ${diff} Day 🏃‍♂️`;
+        } else {
+            const diff = dodoDays - dandonaDays;
+            banner.innerText = `✨ Dodo ${dodoDays} But Dandona ${dandonaDays} So Dandona needs ${diff} Day 🏃‍♀️`;
+        }
+    }
+</script>
+</body>
+</html>

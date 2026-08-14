@@ -122,12 +122,12 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .main-btn:active, .daniel-btn:active {
+        .main-btn:active, .philippians-btn:active {
             transform: scale(0.93);
         }
 
-        /* زرار دانيال الجديد */
-        .daniel-btn {
+        /* زرار Philippians الجديد */
+        .philippians-btn {
             background: #ffffff;
             border: 2px solid #cbd5e1;
             color: #334155;
@@ -143,7 +143,7 @@
             transition: transform 0.2s ease, background-color 0.2s ease;
         }
 
-        .daniel-badge {
+        .philippians-badge {
             background: #e2e8f0;
             color: #0f172a;
             padding: 2px 8px;
@@ -271,12 +271,12 @@
                         ↩️ دوست بالغلط
                     </button>
                 </div>
-                <!-- صف زرار دانيال وزرار التراجع الخاص به -->
+                <!-- صف زرار فيلبي وزرار التراجع الخاص به -->
                 <div class="btn-row">
-                    <button class="daniel-btn" onclick="updateDaniel('dandona', 1)">
-                        📜 Daniel <span class="daniel-badge" id="dandona-daniel-count">0 / 12</span>
+                    <button class="philippians-btn" onclick="updatePhilippians('dandona', 1)">
+                        📜 Philippians <span class="philippians-badge" id="dandona-philippians-count">0 / 13</span>
                     </button>
-                    <button class="undo-btn" onclick="updateDaniel('dandona', -1)">
+                    <button class="undo-btn" onclick="updatePhilippians('dandona', -1)">
                         ↩️ دوست بالغلط
                     </button>
                 </div>
@@ -297,12 +297,12 @@
                         ↩️ دوست بالغلط
                     </button>
                 </div>
-                <!-- صف زرار دانيال وزرار التراجع الخاص به -->
+                <!-- صف زرار فيلبي وزرار التراجع الخاص به -->
                 <div class="btn-row">
-                    <button class="daniel-btn" onclick="updateDaniel('dodo', 1)">
-                        📜 Daniel <span class="daniel-badge" id="dodo-daniel-count">0 / 12</span>
+                    <button class="philippians-btn" onclick="updatePhilippians('dodo', 1)">
+                        📜 Philippians <span class="philippians-badge" id="dodo-philippians-count">0 / 13</span>
                     </button>
-                    <button class="undo-btn" onclick="updateDaniel('dodo', -1)">
+                    <button class="undo-btn" onclick="updatePhilippians('dodo', -1)">
                         ↩️ دوست بالغلط
                     </button>
                 </div>
@@ -328,7 +328,7 @@
     <button class="test-btn" onclick="hardResetForTesting()">test</button>
 
     <script>
-    // إعدادات الـ Firebase الخاصة بيكي
+    // إعدادات الـ Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBBpHKQ6zLFXG6b9FBNBULBXUKQUFT62tU",
         authDomain: "dandona-dodo-tracker.firebaseapp.com",
@@ -344,8 +344,8 @@
 
     let dandonaDays = 0;
     let dodoDays = 0;
-    let dandonaDaniel = 0;
-    let dodoDaniel = 0;
+    let dandonaPhilippians = 0;
+    let dodoPhilippians = 0;
     let maxStreak = 0;
 
     // التحديث اللحظي المباشر بين التليفونين
@@ -354,8 +354,8 @@
             const data = doc.data();
             dandonaDays = data.dandona || 0;
             dodoDays = data.dodo || 0;
-            dandonaDaniel = data.dandonaDaniel || 0;
-            dodoDaniel = data.dodoDaniel || 0;
+            dandonaPhilippians = data.dandonaPhilippians || 0;
+            dodoPhilippians = data.dodoPhilippians || 0;
             maxStreak = data.maxStreak || 0;
             renderUI();
         } else {
@@ -363,8 +363,8 @@
             db.collection("trackers").doc("mainData").set({
                 dandona: 0,
                 dodo: 0,
-                dandonaDaniel: 0,
-                dodoDaniel: 0,
+                dandonaPhilippians: 0,
+                dodoPhilippians: 0,
                 maxStreak: 0
             });
         }
@@ -373,8 +373,8 @@
     function renderUI() {
         document.getElementById('dandona-count').innerText = dandonaDays + ' يوم';
         document.getElementById('dodo-count').innerText = dodoDays + ' يوم';
-        document.getElementById('dandona-daniel-count').innerText = `${dandonaDaniel} / 12`;
-        document.getElementById('dodo-daniel-count').innerText = `${dodoDaniel} / 12`;
+        document.getElementById('dandona-philippians-count').innerText = `${dandonaPhilippians} / 13`;
+        document.getElementById('dodo-philippians-count').innerText = `${dodoPhilippians} / 13`;
         document.getElementById('high-score-text').innerText = `🏆 أطول Day Streak وصلناله: ${maxStreak} يوم`;
         updateComparisonText();
     }
@@ -404,23 +404,23 @@
         });
     }
 
-    function updateDaniel(person, change) {
+    function updatePhilippians(person, change) {
         const docRef = db.collection("trackers").doc("mainData");
         db.runTransaction((transaction) => {
             return transaction.get(docRef).then((sfDoc) => {
                 let val = 0;
                 if (person === 'dandona') {
-                    val = sfDoc.exists ? (sfDoc.data().dandonaDaniel || 0) : 0;
+                    val = sfDoc.exists ? (sfDoc.data().dandonaPhilippians || 0) : 0;
                     val += change;
-                    if (val > 12) val = 1;
+                    if (val > 4) val = 1;
                     if (val < 0) val = 0;
-                    transaction.set(docRef, { dandonaDaniel: val }, { merge: true });
+                    transaction.set(docRef, { dandonaPhilippians: val }, { merge: true });
                 } else if (person === 'dodo') {
-                    val = sfDoc.exists ? (sfDoc.data().dodoDaniel || 0) : 0;
+                    val = sfDoc.exists ? (sfDoc.data().dodoPhilippians || 0) : 0;
                     val += change;
-                    if (val > 12) val = 1;
+                    if (val > 4) val = 1;
                     if (val < 0) val = 0;
-                    transaction.set(docRef, { dodoDaniel: val }, { merge: true });
+                    transaction.set(docRef, { dodoPhilippians: val }, { merge: true });
                 }
             });
         });
@@ -440,8 +440,8 @@
                     transaction.set(docRef, {
                         dandona: 0,
                         dodo: 0,
-                        dandonaDaniel: 0,
-                        dodoDaniel: 0,
+                        dandonaPhilippians: 0,
+                        dodoPhilippians: 0,
                         maxStreak: newMax
                     }, { merge: true });
                 });
@@ -454,8 +454,8 @@
             db.collection("trackers").doc("mainData").set({
                 dandona: 0,
                 dodo: 0,
-                dandonaDaniel: 0,
-                dodoDaniel: 0,
+                dandonaPhilippians: 0,
+                dodoPhilippians: 0,
                 maxStreak: 0
             });
         }

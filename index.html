@@ -89,23 +89,32 @@
             margin-bottom: 25px;
         }
 
-        /* حاوية الزرار وزرار التراجع */
+        /* حاوية الأزرار وزرار التراجع */
         .btn-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .btn-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
         }
 
         .main-btn {
-            width: 110px;
-            height: 110px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             border: 3px solid #ffffff;
             background: #ffffff;
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
             cursor: pointer;
-            font-size: 2rem;
+            font-size: 1.8rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -113,20 +122,46 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .main-btn:active {
+        .main-btn:active, .daniel-btn:active {
             transform: scale(0.93);
+        }
+
+        /* زرار دانيال الجديد */
+        .daniel-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: #334155;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .daniel-badge {
+            background: #e2e8f0;
+            color: #0f172a;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
         }
 
         /* زرار دوست بالغلط */
         .undo-btn {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             border: 1px solid #cbd5e1;
             color: #64748b;
-            padding: 6px 14px;
+            padding: 6px 10px;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            white-space: nowrap;
         }
 
         .undo-btn:hover {
@@ -227,12 +262,24 @@
             <h2>Dandona Day Streak</h2>
             <div class="streak-badge" id="dandona-count">0 يوم</div>
             <div class="btn-wrapper">
-                <button class="main-btn" onclick="updateStreak('dandona', 1)">
-                    📖🙏
-                </button>
-                <button class="undo-btn" onclick="updateStreak('dandona', -1)">
-                    ↩️ دوست بالغلط
-                </button>
+                <!-- صف زرار اليوم وزرار التراجع الخاص به -->
+                <div class="btn-row">
+                    <button class="main-btn" onclick="updateStreak('dandona', 1)">
+                        📖🙏
+                    </button>
+                    <button class="undo-btn" onclick="updateStreak('dandona', -1)">
+                        ↩️ دوست بالغلط
+                    </button>
+                </div>
+                <!-- صف زرار دانيال وزرار التراجع الخاص به -->
+                <div class="btn-row">
+                    <button class="daniel-btn" onclick="updateDaniel('dandona', 1)">
+                        📜 Daniel <span class="daniel-badge" id="dandona-daniel-count">0 / 12</span>
+                    </button>
+                    <button class="undo-btn" onclick="updateDaniel('dandona', -1)">
+                        ↩️ دوست بالغلط
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -241,12 +288,24 @@
             <h2>Dodo Day Streak</h2>
             <div class="streak-badge" id="dodo-count">0 يوم</div>
             <div class="btn-wrapper">
-                <button class="main-btn" onclick="updateStreak('dodo', 1)">
-                    📖🙏
-                </button>
-                <button class="undo-btn" onclick="updateStreak('dodo', -1)">
-                    ↩️ دوست بالغلط
-                </button>
+                <!-- صف زرار اليوم وزرار التراجع الخاص به -->
+                <div class="btn-row">
+                    <button class="main-btn" onclick="updateStreak('dodo', 1)">
+                        📖🙏
+                    </button>
+                    <button class="undo-btn" onclick="updateStreak('dodo', -1)">
+                        ↩️ دوست بالغلط
+                    </button>
+                </div>
+                <!-- صف زرار دانيال وزرار التراجع الخاص به -->
+                <div class="btn-row">
+                    <button class="daniel-btn" onclick="updateDaniel('dodo', 1)">
+                        📜 Daniel <span class="daniel-badge" id="dodo-daniel-count">0 / 12</span>
+                    </button>
+                    <button class="undo-btn" onclick="updateDaniel('dodo', -1)">
+                        ↩️ دوست بالغلط
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -285,6 +344,8 @@
 
     let dandonaDays = 0;
     let dodoDays = 0;
+    let dandonaDaniel = 0;
+    let dodoDaniel = 0;
     let maxStreak = 0;
 
     // التحديث اللحظي المباشر بين التليفونين
@@ -293,6 +354,8 @@
             const data = doc.data();
             dandonaDays = data.dandona || 0;
             dodoDays = data.dodo || 0;
+            dandonaDaniel = data.dandonaDaniel || 0;
+            dodoDaniel = data.dodoDaniel || 0;
             maxStreak = data.maxStreak || 0;
             renderUI();
         } else {
@@ -300,6 +363,8 @@
             db.collection("trackers").doc("mainData").set({
                 dandona: 0,
                 dodo: 0,
+                dandonaDaniel: 0,
+                dodoDaniel: 0,
                 maxStreak: 0
             });
         }
@@ -308,6 +373,8 @@
     function renderUI() {
         document.getElementById('dandona-count').innerText = dandonaDays + ' يوم';
         document.getElementById('dodo-count').innerText = dodoDays + ' يوم';
+        document.getElementById('dandona-daniel-count').innerText = `${dandonaDaniel} / 12`;
+        document.getElementById('dodo-daniel-count').innerText = `${dodoDaniel} / 12`;
         document.getElementById('high-score-text').innerText = `🏆 أطول Day Streak وصلناله: ${maxStreak} يوم`;
         updateComparisonText();
     }
@@ -337,6 +404,28 @@
         });
     }
 
+    function updateDaniel(person, change) {
+        const docRef = db.collection("trackers").doc("mainData");
+        db.runTransaction((transaction) => {
+            return transaction.get(docRef).then((sfDoc) => {
+                let val = 0;
+                if (person === 'dandona') {
+                    val = sfDoc.exists ? (sfDoc.data().dandonaDaniel || 0) : 0;
+                    val += change;
+                    if (val > 12) val = 1;
+                    if (val < 0) val = 0;
+                    transaction.set(docRef, { dandonaDaniel: val }, { merge: true });
+                } else if (person === 'dodo') {
+                    val = sfDoc.exists ? (sfDoc.data().dodoDaniel || 0) : 0;
+                    val += change;
+                    if (val > 12) val = 1;
+                    if (val < 0) val = 0;
+                    transaction.set(docRef, { dodoDaniel: val }, { merge: true });
+                }
+            });
+        });
+    }
+
     function resetStreaks() {
         if (confirm("تأكيد الـ Reset والبدء من جديد؟")) {
             const docRef = db.collection("trackers").doc("mainData");
@@ -351,6 +440,8 @@
                     transaction.set(docRef, {
                         dandona: 0,
                         dodo: 0,
+                        dandonaDaniel: 0,
+                        dodoDaniel: 0,
                         maxStreak: newMax
                     }, { merge: true });
                 });
@@ -363,6 +454,8 @@
             db.collection("trackers").doc("mainData").set({
                 dandona: 0,
                 dodo: 0,
+                dandonaDaniel: 0,
+                dodoDaniel: 0,
                 maxStreak: 0
             });
         }
